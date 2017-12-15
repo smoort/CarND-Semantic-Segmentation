@@ -55,7 +55,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :return: The Tensor for the last layer of output
     """
     # TODO: Implement function
-	
+    """	
     conv_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding = 'same',
                                 kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
     conv_transpose_1 = tf.layers.conv2d_transpose(conv_1x1, num_classes, 4, 2, padding = 'same',
@@ -66,6 +66,15 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     conv_transpose_2_with_skip_connection = tf.add(conv_transpose_2, vgg_layer3_out)
     conv_transpose_3 = tf.layers.conv2d_transpose(conv_transpose_2_with_skip_connection, num_classes, 4, 8, padding = 'same',
                                 kernel_regularizer = tf.contrib.layers.l2_regularizer(1e-3))
+    """
+	
+    conv7_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    conv7_up = tf.layers.conv2d_transpose(conv7_1x1, num_classes, 4, 2, padding='same',  kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    conv4_1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    conv4_skip = tf.add(conv7_up, conv4_1x1)
+    conv4_up = tf.layers.conv2d_transpose(conv4_skip, num_classes, 4, 2, padding = 'same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    conv3_1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same', kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    conv_transpose_3 = tf.add(conv4_up, conv3_1x1)
 	
     return conv_transpose_3
 tests.test_layers(layers)
@@ -81,7 +90,12 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
     # TODO: Implement function
-    return None, None, None
+	
+    logits = tf.reshape(nn_last_layer, (-1, num_classes))
+    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label))
+    optimizer = tf.train.AdamOptimizer(learning_rate)
+    train_op = optimizer.minimize(cross_entropy_loss)
+    return logits, train_op, cross_entropy_loss
 tests.test_optimize(optimize)
 
 
