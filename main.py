@@ -92,7 +92,10 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     # TODO: Implement function
 	
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
+	# labels = tf.reshape(correct_label, (-1, num_classes))
+	
     cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label))
+	
     optimizer = tf.train.AdamOptimizer(learning_rate)
     train_op = optimizer.minimize(cross_entropy_loss)
     return logits, train_op, cross_entropy_loss
@@ -115,6 +118,10 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param learning_rate: TF Placeholder for learning rate
     """
     # TODO: Implement function
+	
+	for epochs in epochs;
+	    for image, label in get_batches_fn(batch_size);
+		    
     pass
 tests.test_train_nn(train_nn)
 
@@ -125,6 +132,8 @@ def run():
     data_dir = './data'
     runs_dir = './runs'
     tests.test_for_kitti_dataset(data_dir)
+	
+	learning_rate = tf.placeholder(tf.float32)
 
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
@@ -143,8 +152,20 @@ def run():
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
         # TODO: Build NN using load_vgg, layers, and optimize function
+		w1, keep, vgg_layer3_out, vgg_layer4_out, vgg_layer7_out = load_vgg(sess, vgg_path)
+		nn_last_layer = layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes)
+		logits, train_op, cross_entropy_loss = optimize(nn_last_layer, correct_label, learning_rate, num_classes)
 
         # TODO: Train NN using the train_nn function
+		train_nn(sess, epochs=2, batch_size=1, get_batches_fn, train_op, cross_entropy_loss, input_image,
+             correct_label, keep_prob, learning_rate)
+		
+		
+        loss = sess.run(train_op, feed_dict={ input_image: images, correct_label: labels, keep_prob: 0.5, learning_rate: 0.01})
+		img = np.random.rand(8, 160, 576, 3) 
+		nn_last_layer_print = tf.Print(nn_last_layer, [tf.shape(nn_last_layer), " nn_last_layer.shape "], summarize=4)
+		sess.run(tf.global_variables_initializer())
+		sess.run(nn_last_layer_print, feed_dict={input_image: img, keep_prob: 1.0})
 
         # TODO: Save inference data using helper.save_inference_samples
         #  helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
